@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Map - TileServer GL</title>
+  <link rel="stylesheet" type="text/css" href="resources/mapbox-gl.css" />
+  <script src="resources/mapbox-gl.js"></script>
+  <link rel="stylesheet" type="text/css" href="resources/mapbox.css" />
+  <script src="resources/mapbox.js"></script>
+  <script src="resources/leaflet-hash.js"></script>
+  <script src="assets/js/socket.io.js"></script>
+  <script src="assets/js/jquery.min.js"></script>
+  <style>
+	body { margin:0; padding:0; }
+	.mapboxgl-ctrl-bottom-right{visibility: hidden}
+	#map { position:absolute; top:0; bottom:0; width:100%;height: 100% }
+	.mapboxgl-ctrl-group button {
+width: 80px;
+height: 80px;
+background: #ccc5c5b0;
+border-radius: 4px;
+border: 2px solid darkgrey;
+	}
+	button{
+		margin-bottom: 20px !important;
+	}
+	.mapboxgl-ctrl-group {
+		border-radius: 4px;
+		background: transparent;
+	}
+.mapboxgl-ctrl-group:not(:empty) {
+	-moz-box-shadow: 0 0 2px rgba(0,0,0,.1);
+	/* -webkit-box-shadow: 0 0 2px rgb(0 0 0 / 10%); */
+	 box-shadow:none; 
+}
+.reduceM{
+	transform: scale(0.3) !important;
+	z-index:1000;
+	  top:34% !important; 
+	  left:-34%  !important;
+  }
+  .reduceV{
+	  transform: scale(0.3) !important;
+	  z-index:900;
+	  top:34%; 
+	  left:-34%
+	}
+	.mhide{
+		visibility: hidden !important;
+	}
+  </style>
+</head>
+<body>
+  <div style="position: fixed;width:100%;height:100%;" id="dmap">	
+ 	 <div id='map'></div>
+ 	 <div class="mhide" id="btmap" style="top:0;left:0;width:100%;height:100%;position:absolute;z-index:10000;border: 2px solid cornflowerblue;" onclick="setvid()"></div>
+ </div>
+  
+  <div style="position: fixed;width:100%;height:100%;" class="reduceV" id="video">
+	  <iframe height="100%" width="100%" src="http://192.168.4.1" ></iframe>
+	  <div style="top:0;left:0;width:100%;height:100%;position:absolute;z-index:10000;border: 2px solid cornflowerblue;" onclick="setvid()"></div>
+  </div>
+  
+  <div onclick="setDir('l')"  
+	
+	style="
+		position: fixed;
+		z-index: 999;
+		width: 100px;
+	  height: 100px;
+	  left: 40px;
+	  top: 38%;
+	  border-radius: 20px;
+	">
+	<img src="assets/btlsq.png" width="100px">
+	</div>
+  
+	<div onclick="setDir('r')"  
+	
+	style="
+		position: fixed;
+		z-index: 999;
+		width: 100px;
+	  height: 100px;
+	  right: 40px;
+	  top: 38%;
+	  border-radius: 20px;
+	">
+	<img src="assets/btrsq.png" width="100px">
+	</div>
+  
+	<div onclick="setLight()"  
+	style="
+		position: fixed;
+		z-index: 999;
+		width: 80px;
+	  height: 80px;
+	  right: 30px;
+	  bottom: 30px;
+	  border-radius: 20px;
+	">
+	<img src="assets/btlight.png" width="100px">
+	</div>
+	
+	<div onclick='window.location = "/wifi"'  
+	style="
+		position: fixed;
+		z-index: 999;
+		width: 80px;
+	  height: 80px;
+	  left: 30px;
+	  top: 30px;
+	  border-radius: 20px;
+	">
+	<img src="assets/btlight.png" width="100px">
+	</div>
+	
+	
+  <script>
+	  var map ;
+	  var size = 250;
+	  var socket = io();
+	  var isvideo=0;
+	  var ismap=1;
+	  
+	  var mypos={
+		lat: "46.496422",
+		lon: "-1.775933"
+		}
+	  
+	  var mycenter=[parseFloat(mypos.lon),parseFloat(mypos.lat)];
+			
+		  mapboxgl.setRTLTextPlugin('resources/mapbox-gl-rtl-text.js');
+		  map = new mapboxgl.Map({
+			container: 'map',
+			style: 'http://localhost:8080/styles/basic-preview/style.json',
+			hash: true,
+			center: mycenter,
+			zoom: 17,
+			pitch: 45
+		  });
+		 // map.addControl(new mapboxgl.NavigationControl());
+	
+		  var pulsingDot = {
+			width: size,
+			height: size,
+			data: new Uint8Array(size * size * 4),
+			 
+			// get rendering context for the map canvas when layer is added to the map
+			onAdd: function () {
+			var canvas = document.createElement('canvas');
+				canvas.width = this.width;
+				canvas.height = this.height;
+				this.context = canvas.getContext('2d');
+			},
+			 
+			// called once before every frame where the icon will be used
+			render: function () {
+			  var duration = 1000;
+			  var t = (performance.now() % duration) / duration;
+			 
+			  var radius = (size / 2) * 0.3;
+			  var outerRadius = (size / 2) * 0.7 * t + radius;
+			  var context = this.context;
+			 
+			 // draw outer circle
+			  context.clearRect(0, 0, this.width, this.height);
+			  context.beginPath();
+			  context.arc(
+				  this.width / 2,
+				this.height / 2,
+				outerRadius,
+				0,
+				Math.PI * 2
+				);
+			  context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
+			  context.fill();
+			 
+			  // draw inner circle
+			  context.beginPath();
+			  context.arc(
+				this.width / 2,
+				this.height / 2,
+				radius,
+				0,
+				Math.PI * 2
+				);
+			context.fillStyle = 'rgba(255, 100, 100, 1)';
+			context.strokeStyle = 'white';
+			context.lineWidth = 2 + 4 * (1 - t);
+			context.fill();
+			context.stroke();
+			 
+			// update this image's data with data from the canvas
+			this.data = context.getImageData(
+				0,
+				0,
+				this.width,
+				this.height
+			).data;
+			 
+			// continuously repaint the map, resulting in the smooth animation of the dot
+			map.triggerRepaint();
+			 
+			// return `true` to let the map know that the image was updated
+			return true;
+			}
+			};
+			 
+		  map.on('load', function () {
+			map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+			map.addSource('points', {
+				'type': 'geojson',
+				'data': {
+					'type': 'FeatureCollection',
+					
+					'features': [
+						{
+						'type': 'Feature',
+						'geometry': {
+							'type': 'Point',
+							'coordinates': mycenter
+							}
+						}
+					]
+				}
+
+			});
+			
+			map.flyTo({
+				  center: mycenter,
+				  offset: [0, 140],
+				  speed: 0.5
+				  });
+			
+			map.setLayoutProperty('place_label_city', 'text-field', [
+				  'format',
+				  ['get', 'name_en'],
+				  { 'font-scale': 1.2 },
+				  '\n',
+				  {},
+				  ['get', 'name'],
+				  {
+				  'font-scale': 0.8,
+				  'text-font': [
+				  'literal',
+				  ['DIN Offc Pro Italic', 'Arial Unicode MS Regular']
+				  ]
+				  }
+				  ]);
+				  
+			map.addLayer({
+				'id': 'points',
+				'type': 'symbol',
+				'source': 'points',
+				'layout': {
+					'icon-image': 'pulsing-dot'
+					}
+				});
+		});
+		  
+		  socket.on('gps', function(res){
+			  //console.log(res)
+			  mypos=res;
+			  if(mypos.lat !== null){
+			  //map.center = mycenter;
+			  mycenter=[parseFloat(mypos.lon),parseFloat(mypos.lat)];
+			  var str = '{"geometry": {"type": "Point", "coordinates": ['+mycenter+']}, "type": "Feature", "properties": {}}';
+			  var json = JSON.parse(str);
+			  //console.log(json)
+			  map.getSource('points').setData(json);
+			  map.flyTo({
+				  center: mycenter,
+				  offset: [0, 140],
+				  speed: 0.5
+				  });
+				  
+				  
+				}  
+			  })
+			  
+
+
+		function setvid(){
+			//remove class 
+			if(isvideo==0){
+				$( "#video" ).removeClass( "reduceV" );
+				$( "#btmap" ).removeClass( "mhide" );
+				$( "#dmap" ).addClass( "reduceM" );
+				isvideo=1;
+			}
+			else{
+				$( "#video" ).addClass( "reduceV" );
+				$( "#dmap" ).removeClass( "reduceM" );
+				$( "#btmap" ).addClass( "mhide" );
+				isvideo=0;	
+			}
+			
+		}
+
+		
+  </script>
+</body>
+</html>

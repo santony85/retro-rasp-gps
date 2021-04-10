@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+	body { margin:0; padding:0; }
+	.loader {
+	  border: 50px solid #f3f3f3; /* Light grey */
+	  border-top: 50px solid #3498db; /* Blue */
+	  border-radius: 50%;
+	  width: 250px;
+	  height: 250px;
+	  animation: spin 2s linear infinite;
+	}
+	.nbsec{
+	font-size: 32px;
+	font-family: sans-serif;
+	}
+	
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
+  </style>
+</head>
+<body>
+	<table width="100%">
+		<tr><td align="center"><div class="loader"></div></td></tr>
+		<tr><td align="center"><div class="nbsec">&nbsp;</div></td></tr>
+		<tr><td align="center"><div class="nbsec" id="nbsec"></div></td></tr>
+	</table>
+
+  <script>
+
+	var nbsec=15;
+	document.getElementById("nbsec").innerHTML = " Chargement en cours... "+nbsec+" sec";
+	var myVar = setInterval(myTimer, 1000);
+	$(document).ready(function() {
+		
+		
+			
+		 
+	});
+	function myTimer() {
+		nbsec--;
+		document.getElementById("nbsec").innerHTML = " Chargement en cours... "+nbsec+" sec";
+		if(nbsec==0){
+		  clearInterval(myVar);	
+		  window.location = "http://localhost:1001/map";
+		  }
+		}
+
+		
+
+		
+  </script>
+</body>
+</html>

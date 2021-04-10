@@ -1,0 +1,22 @@
+{
+  "name": "cligno",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@serialport/parser-readline": "^9.0.7",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "gps": "^0.6.0",
+    "nodejs-qmc5883l": "^2.0.0",
+    "pi-wifi": "^1.2.0",
+    "serialport": "^9.0.7",
+    "socket.io": "^4.0.1",
+    "wiring-pi": "^2.2.1"
+  }
+}

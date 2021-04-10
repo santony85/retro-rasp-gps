@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="assets/js/socket.io.js"></script>
+	<script src="assets/js/jquery.min.js"></script>
+  <style>
+	body { margin:0; padding:0; }
+	.loader {
+		border: 5px solid #f3f3f3;
+		border-radius: 20px;
+		width: 250px;
+		margin-top: 20px;
+		font-size: 32px;
+		font-family: sans-serif;
+		padding: 10px;
+		background: azure;
+	}
+	
+	.loaderBT {
+		border: 5px solid #f3f3f3;
+		border-radius: 20px;
+		width: 250px;
+		margin-top: 20px;
+		font-size: 32px;
+		font-family: sans-serif;
+		padding: 10px;
+		background: lightgreen;
+	}
+	
+	.mhide{
+		visibility: hidden;
+	}
+
+  </style>
+</head>
+<body>
+	<table width="100%">
+		<tr><td align="center"><div class="loader" onclick='setWifi("ESP32RETRO")'>ESP32AP</div></td></tr>
+		<tr><td align="center"><div class="loader" onclick='setWifi("Livebox-4296")'>Livebox-4296</div></td></tr>
+		<tr><td align="center"><div class="loaderBT mhide" id="validbt">Valider</div></td></tr>
+		<tr><td align="center"><div class="loaderBT " id="validbt" onclick='window.location = "/map"' >Annuler</div></td></tr>
+	</table>
+
+  <script>
+  	var socket = io.connect();
+	function setWifi(ip){
+		$.get( "setwifi/"+ip, function( data ) {
+			  console.log(data)
+			  if(data=="ok")window.location = "/map"; 
+			});
+	}  
+
+		
+  </script>
+</body>
+</html>
